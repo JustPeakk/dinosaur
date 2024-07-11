@@ -1,0 +1,13 @@
+export const ANCHO_TABLERO = 640;
+export const ALTO_TABLERO = 480;
+export const ANCHO_PALETA = 10;
+export const ALTO_PALETA = 80;
+export const ANCHO_PELOTA = 20;
+export const ALTO_PELOTA = 20;
+export const COLOR_TABLERO = "black";
+export const COLOR_PALETA_1 = "red";
+export const COLOR_PALETA_2 = "blue";
+export const COLOR_PELOTA = "white";
+export const SEPARACION_PALETA_PARED = 30;
+export const SALTO_PALETA = 5;
+export const SALTO_PELOTA = 7;
