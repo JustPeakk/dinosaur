@@ -3,16 +3,14 @@
 
 const ANCHO_TABLERO = 640;
 const ALTO_TABLERO = 480;
-const COLOR_TABLERO = "black";
+const COLOR_TABLERO = "#3499b3";
 const ALTO_BASE = 100;
 const ANCHO_BASE = 640;
-const COLOR_BASE = "gray";
+const COLOR_BASE = "#2E8B57";
 const ALTO_PERSONAJE = 25;
 const ANCHO_PERSONAJE = 25;
 const COLOR_PERSONAJE = "pink";
-const ANCHO_OBSTACULO = 40;
-const ALTO_OBSTACULO = 40;
-const COLOR_OBSTACULO = "white";
+const SALTO_OBSTACULO = 7
 const SEPARACION_OBSTACULO_PARED = 340;
 const SEPARACION_PERSONAJE_PARED = 100;
 const TECLA_DERECHA = "m";
@@ -21,29 +19,58 @@ const TECLA_SALTO = "z";
 const TECLA_FIN_JUEGO = "Escape";
 const PASOS_SALTO: number[] = [3, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -3, -3]
 const MULTIPLICADOR_SALTO = 3
-const NUMERO_OBSTACULOS = 2
-const obstaculos: Rectangle[] = [
-  {
-    x: 0 + 240,
-    y: (ALTO_TABLERO - ALTO_BASE) - ALTO_OBSTACULO,
-    w: ANCHO_OBSTACULO,
-    h: ALTO_OBSTACULO
-  },
-  {
-    x: 0 + 440,
-    y: (ALTO_TABLERO - ALTO_BASE) - ALTO_OBSTACULO,
-    w: ANCHO_OBSTACULO,
-    h: ALTO_OBSTACULO
-  }
-]
-const saltoObstaculo = 7
+const NUMERO_OBSTACULOS = 1
+const colores: string[] = ["#DC143C", "#FF6347", "#9932CC", "#000080"]
+const obstaculos: Rectangle[] = []
 
+const SONIDO_SALTO = new Audio("/pedo.wav");
+SONIDO_SALTO.loop = false
+
+const anchuraObstaculo = getRandomArbitrary(20, 50)
+
+function getRandomColor(): string {
+  let randomValue = Math.round(getRandomArbitrary(0, colores.length - 1))
+  let color = colores[randomValue];
+  return color;
+}
+
+function getRandomSpeed(): number{
+  let randomSpeed =  (getRandomArbitrary(5, 10))
+  return randomSpeed;
+}
+
+function generarObstaculo(): Rectangle {
+  const alturaObstaculo = getRandomArbitrary(10, 50)
+  const posicionObstaculoY = (ALTO_TABLERO - ALTO_BASE) - alturaObstaculo
+  const nuevoObstaculo = {
+    x: getRandomArbitrary(300, 640),
+    y: posicionObstaculoY,
+    w: anchuraObstaculo,
+    h: alturaObstaculo,
+    color: getRandomColor(),
+    speed: getRandomSpeed()
+  }
+  return nuevoObstaculo;
+}
+
+
+
+function generarObstaculos(numeroObstaculos: number, obstaculos: Rectangle[]) {
+  //crear bucle
+  //generar un obstaculo
+  //meter obstaculo en array
+
+  for (let i = 0; i < numeroObstaculos; i++) {
+    obstaculos.push(generarObstaculo())
+  }
+  console.log(obstaculos)
+
+}
+
+
+let COLOR_OBSTACULO = "white";
 let pasoSaltoActual = 0;
 let saltoPersonaje = 5;
-// let posicionPersonajeX = 0 + SEPARACION_PERSONAJE_PARED;
-// let posicionPersonajeY = (ALTO_TABLERO - ALTO_BASE) - ALTO_PERSONAJE;
-// let posicionObstaculoX = 0 + SEPARACION_OBSTACULO_PARED;
-// let posicionObstaculoY = (ALTO_TABLERO - ALTO_BASE) - ALTO_OBSTACULO;
 let finJuego: boolean;
 let teclasPulsadas = new Set<string>();
 let lienzo: HTMLCanvasElement | null;
@@ -54,20 +81,24 @@ type Rectangle = {
   y: number;
   w: number;
   h: number;
+  color: string;
+  speed: number
 }
 
-let obstaculo: Rectangle = {
-  x: 0 + SEPARACION_OBSTACULO_PARED,
-  y: (ALTO_TABLERO - ALTO_BASE) - ALTO_OBSTACULO,
-  w: ANCHO_OBSTACULO,
-  h: ALTO_OBSTACULO
-}
+// let obstaculo: Rectangle = {
+//   x: 0 + SEPARACION_OBSTACULO_PARED,
+//   y: (ALTO_TABLERO - ALTO_BASE) - ALTO_OBSTACULO,
+//   w: ANCHO_OBSTACULO,
+//   h: ALTO_OBSTACULO
+// }
 
 let personaje: Rectangle = {
   x: 0 + SEPARACION_PERSONAJE_PARED,
   y: (ALTO_TABLERO - ALTO_BASE) - ALTO_PERSONAJE,
   w: ANCHO_PERSONAJE,
-  h: ALTO_PERSONAJE
+  h: ALTO_PERSONAJE,
+  color: COLOR_PERSONAJE,
+  speed: saltoPersonaje
 }
 
 
@@ -76,22 +107,24 @@ function getRandomArbitrary(min: number, max: number) {
 }
 
 function actualizarFinJuego() {
-  if (teclasPulsadas.has("Escape") || colisionRectangulos(obstaculo, personaje) === true) {
+  if (teclasPulsadas.has("Escape")) {
     finJuego = true;
   }
-for (let i = 0; i < obstaculos.length; i++) {
-  const obstaculoActual = obstaculos[i];
-  colisionRectangulos(obstaculoActual, personaje)
-  if (colisionRectangulos(obstaculoActual, personaje) === true){
-    finJuego = true
+  for (let i = 0; i < obstaculos.length; i++) {
+    const obstaculoActual = obstaculos[i];
+    colisionRectangulos(obstaculoActual, personaje)
+    if (colisionRectangulos(obstaculoActual, personaje) === true) {
+      finJuego = true
+    }
   }
-}
 
 
 
 }
 
 function inicializarJuego() {
+  generarObstaculos(NUMERO_OBSTACULOS, obstaculos)
+
   lienzo = document.getElementById("canvas") as HTMLCanvasElement;
   contexto = lienzo.getContext("2d");
   if (contexto) {
@@ -129,16 +162,17 @@ function dibujarPersonaje(contexto: CanvasRenderingContext2D) {
 }
 
 function dibujarObstaculos(contexto: CanvasRenderingContext2D) {
-  dibujarRectangulo(contexto, COLOR_OBSTACULO, obstaculo.x, obstaculo.y, ANCHO_OBSTACULO, ALTO_OBSTACULO)
   for (let i = 0; i < obstaculos.length; i++) {
     let obstaculoActual = obstaculos[i]
-    dibujarRectangulo(contexto, COLOR_OBSTACULO, obstaculoActual.x, obstaculoActual.y, obstaculoActual.w, obstaculoActual.h)
+    dibujarRectangulo(contexto, obstaculoActual.color, obstaculoActual.x, obstaculoActual.y, obstaculoActual.w, obstaculoActual.h)
   }
 }
 
+function beep() {
+  SONIDO_SALTO.play();
+}
 
-
-
+let mySound = new Audio('efecto de sonido de salto de Super Mario.mp3')
 
 function actualizarPosicionPersonaje(teclasPulsadas: Set<string>) {
   if (teclasPulsadas.has(TECLA_DERECHA)) {
@@ -150,20 +184,26 @@ function actualizarPosicionPersonaje(teclasPulsadas: Set<string>) {
   }
 
   if (teclasPulsadas.has(TECLA_SALTO) || pasoSaltoActual > 0) {
-    personaje.y = personaje.y - PASOS_SALTO[pasoSaltoActual] * MULTIPLICADOR_SALTO
 
+    personaje.y = personaje.y - PASOS_SALTO[pasoSaltoActual] * MULTIPLICADOR_SALTO
     pasoSaltoActual++
     if (pasoSaltoActual >= PASOS_SALTO.length) {
       pasoSaltoActual = 0
     }
+  
   }
+  if (pasoSaltoActual === 1 && teclasPulsadas.has(TECLA_SALTO)){
+    beep();
+  }
+
+  
 }
 function colisionRectangulos(rect1: Rectangle, rect2: Rectangle): boolean {
   if (
     rect1.x < rect2.x + rect2.w &&
     rect1.x + rect1.w > rect2.x &&
     rect1.y < rect2.y + rect2.h &&
-    rect1.y + rect1.h > rect2.y 
+    rect1.y + rect1.h > rect2.y
   ) {
 
     return true;
@@ -173,22 +213,16 @@ function colisionRectangulos(rect1: Rectangle, rect2: Rectangle): boolean {
 
 
 
-
-
-
 function actualizarPosicionObstaculos() {
 
   for (let i = 0; i < obstaculos.length; i++) {
     const obstaculoActual = obstaculos[i];
-    obstaculoActual.x = obstaculoActual.x - saltoObstaculo
-    if (obstaculoActual.x <= 0 - ANCHO_OBSTACULO){
-      obstaculoActual.x = ANCHO_TABLERO + ANCHO_OBSTACULO
+    obstaculoActual.x = obstaculoActual.x - obstaculoActual.speed
+    if (obstaculoActual.x <= 0 - anchuraObstaculo) {
+      const nuevoObstaculo = generarObstaculo()
+      nuevoObstaculo.x = ANCHO_TABLERO + anchuraObstaculo
+      obstaculos[i] = nuevoObstaculo;
     }
-  }
-  obstaculo.x = obstaculo.x - saltoObstaculo
-
-  if (obstaculo.x <= 0 - ANCHO_OBSTACULO) {
-    obstaculo.x = ANCHO_TABLERO + ANCHO_OBSTACULO
   }
 }
 
@@ -203,6 +237,7 @@ function render(contexto: CanvasRenderingContext2D) {
   dibujarBase(contexto);
   dibujarPersonaje(contexto);
   dibujarObstaculos(contexto);
+
 }
 
 inicializarJuego();
