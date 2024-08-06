@@ -28,6 +28,14 @@ const SONIDO_SALTO = new Audio("/pedo.wav");
 const anchuraObstaculo = getRandomArbitrary(20, 50)
 
 //VARIABLES
+let copoNieve: Snow[];
+let COLOR_OBSTACULO = "white";
+let pasoSaltoActual = 0;
+let saltoPersonaje = 5;
+let finJuego: boolean;
+let teclasPulsadas = new Set<string>();
+let lienzo: HTMLCanvasElement | null;
+let contexto: CanvasRenderingContext2D | null;
 
 
 SONIDO_SALTO.loop = false
@@ -41,7 +49,7 @@ function crearNieve() {
         x: getRandomArbitrary(0, ANCHO_TABLERO),
         y: getRandomArbitrary(0, ALTO_TABLERO),
       },
-      velocity: getRandomArbitrary(70, 200),
+      velocity: getRandomArbitrary(30, 50),
       size: getRandomArbitrary(1, 3),
     };
     copoNieve[index] = nuevoCopo;
@@ -73,30 +81,29 @@ function generarObstaculo(): Rectangle {
   return nuevoObstaculo;
 }
 
-
+function resetearPosicionPersonaje() {
+  if (personaje.x <= 0) {
+    personaje.x = 0
+  }
+  if (personaje.x >= ANCHO_TABLERO - ANCHO_PERSONAJE) {
+    personaje.x = ANCHO_TABLERO - ANCHO_PERSONAJE
+  }
+}
 
 function generarObstaculos(numeroObstaculos: number, obstaculos: Rectangle[]) {
   //crear bucle
   //generar un obstaculo
   //meter obstaculo en array
-  
+
   for (let i = 0; i < numeroObstaculos; i++) {
     obstaculos.push(generarObstaculo())
   }
   console.log(obstaculos)
-  
-  
+
+
 }
 
 
-let copoNieve: Snow[];
-let COLOR_OBSTACULO = "white";
-let pasoSaltoActual = 0;
-let saltoPersonaje = 5;
-let finJuego: boolean;
-let teclasPulsadas = new Set<string>();
-let lienzo: HTMLCanvasElement | null;
-let contexto: CanvasRenderingContext2D | null;
 
 type Rectangle = {
   x: number;
@@ -144,9 +151,9 @@ function actualizarFinJuego() {
       finJuego = true
     }
   }
-  
-  
-  
+
+
+
 }
 
 function inicializarJuego() {
@@ -154,13 +161,13 @@ function inicializarJuego() {
   copoNieve = [...Array(1000)];
   lienzo = document.getElementById("canvas") as HTMLCanvasElement;
   contexto = lienzo.getContext("2d");
-  
+
   crearNieve();
   if (contexto) {
     contexto.canvas.width = ANCHO_TABLERO;
     contexto.canvas.height = ALTO_TABLERO;
   }
-  
+
   if (contexto) {
     render(contexto);
   }
@@ -181,7 +188,7 @@ function dibujarRectangulo(
 function dibujarNieve(contexto: CanvasRenderingContext2D) {
   for (let index = 0; index < copoNieve.length; index++) {
     const copo: Snow = copoNieve[index];
-    
+
     dibujarRectangulo(
       contexto,
       copo.color,
@@ -194,11 +201,32 @@ function dibujarNieve(contexto: CanvasRenderingContext2D) {
 }
 
 function dibujarTablero(contexto: CanvasRenderingContext2D) {
-  dibujarRectangulo(contexto, COLOR_TABLERO, 0, 0, ANCHO_TABLERO, ALTO_TABLERO);
+  // dibujarRectangulo(contexto, COLOR_TABLERO, 0, 0, ANCHO_TABLERO, ALTO_TABLERO);
+
+  const lingrad = contexto.createLinearGradient(0, 0, 0, ALTO_TABLERO);
+  lingrad.addColorStop(0, "#2f7fe0");
+  // lingrad.addColorStop(0.5, "#fff");
+  // lingrad.addColorStop(0.5, "#26C000");
+  lingrad.addColorStop(1, "#85d9f2");
+
+  contexto.fillStyle = lingrad
+  contexto.fillRect(0, 0, ANCHO_TABLERO, ALTO_TABLERO);
+
+
 }
 
 function dibujarBase(contexto: CanvasRenderingContext2D) {
-  dibujarRectangulo(contexto, COLOR_BASE, 0, ALTO_TABLERO - ALTO_BASE, ANCHO_BASE, ALTO_BASE);
+  // dibujarRectangulo(contexto, COLOR_BASE, 0, ALTO_TABLERO - ALTO_BASE, ANCHO_BASE, ALTO_BASE);
+
+  const lingrad = contexto.createLinearGradient(0, ALTO_TABLERO - ALTO_BASE, 0, ALTO_TABLERO);
+  lingrad.addColorStop(0, "#00d243");
+  lingrad.addColorStop(0.5, "#00c884");
+  // lingrad.addColorStop(0.5, "#26C000");
+  lingrad.addColorStop(1, "#00c8b4");
+
+  contexto.fillStyle = lingrad
+  contexto.fillRect(0, ALTO_TABLERO - ALTO_BASE, ANCHO_BASE, ALTO_BASE);
+
 }
 
 function dibujarPersonaje(contexto: CanvasRenderingContext2D) {
@@ -219,20 +247,20 @@ function beep() {
 let mySound = new Audio('efecto de sonido de salto de Super Mario.mp3')
 
 function actualizarPosicionNieve(deltaTime: number) {
-  
+
   for (let index = 0; index < copoNieve.length; index++) {
     const copoActual: Snow = copoNieve[index];
-    
-    copoActual.position.y =
-    copoActual.position.y + copoActual.velocity * deltaTime;
-    copoActual.position.x =
-    copoActual.position.x + getRandomArbitrary(-3,3)
-    if (copoActual.position.y >ALTO_TABLERO - ALTO_BASE) {
-      copoActual.position.y =ALTO_TABLERO - ALTO_BASE - copoActual.position.y;
-    } 
 
-    if (copoActual.position.x >ANCHO_TABLERO + ANCHO_BASE) {
-      copoActual.position.x =ANCHO_TABLERO + ANCHO_BASE + copoActual.position.x;
+    copoActual.position.y =
+      copoActual.position.y + copoActual.velocity * deltaTime;
+    copoActual.position.x =
+      copoActual.position.x + getRandomArbitrary(-1, 1)
+    if (copoActual.position.y > ALTO_TABLERO - ALTO_BASE) {
+      copoActual.position.y = ALTO_TABLERO - ALTO_BASE - copoActual.position.y;
+    }
+
+    if (copoActual.position.x > ANCHO_TABLERO + ANCHO_BASE) {
+      copoActual.position.x = ANCHO_TABLERO + ANCHO_BASE + copoActual.position.x;
     }
   }
 }
@@ -241,13 +269,13 @@ function actualizarPosicionPersonaje(teclasPulsadas: Set<string>) {
   if (teclasPulsadas.has(TECLA_DERECHA)) {
     personaje.x = personaje.x + saltoPersonaje
   }
-  
+
   if (teclasPulsadas.has(TECLA_IZQUIERDA)) {
     personaje.x = personaje.x - saltoPersonaje
   }
-  
+
   if (teclasPulsadas.has(TECLA_SALTO) || pasoSaltoActual > 0) {
-    
+
     personaje.y = personaje.y - PASOS_SALTO[pasoSaltoActual] * MULTIPLICADOR_SALTO
     pasoSaltoActual++
     if (pasoSaltoActual >= PASOS_SALTO.length) {
@@ -293,6 +321,7 @@ function update(deltaTime: number) {
   actualizarPosicionPersonaje(teclasPulsadas);
   actualizarPosicionObstaculos();
   actualizarPosicionNieve(deltaTime);
+  resetearPosicionPersonaje();
   actualizarFinJuego();
 }
 
