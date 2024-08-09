@@ -26,6 +26,8 @@ const colores: string[] = ["#DC143C", "#FF6347", "#9932CC", "#000080"]
 const obstaculos: Rectangle[] = []
 const SONIDO_SALTO = new Audio("/pedo.wav");
 const anchuraObstaculo = getRandomArbitrary(20, 50)
+const ANCHURA_MARCADOR: number = 300;
+const MarcadorX: number = 300;
 
 //VARIABLES
 let copoNieve: Snow[];
@@ -36,9 +38,14 @@ let finJuego: boolean;
 let teclasPulsadas = new Set<string>();
 let lienzo: HTMLCanvasElement | null;
 let contexto: CanvasRenderingContext2D | null;
+let marcador: number;
+let textoMarcador: string = "Puntuación: "
+let counter = 0
+
 
 
 SONIDO_SALTO.loop = false
+
 
 
 function crearNieve() {
@@ -104,7 +111,6 @@ function generarObstaculos(numeroObstaculos: number, obstaculos: Rectangle[]) {
 }
 
 
-
 type Rectangle = {
   x: number;
   y: number;
@@ -116,14 +122,21 @@ type Rectangle = {
 type Point = {
   x: number;
   y: number;
-};
+}
 
 type Snow = {
   color: string;
   position: Point;
   velocity: number;
   size: number;
-};
+}
+
+type Texto = {
+  message: string;
+  x: number;
+  y: number;
+  maxwidth: number
+}
 
 
 let personaje: Rectangle = {
@@ -240,6 +253,18 @@ function dibujarObstaculos(contexto: CanvasRenderingContext2D) {
   }
 }
 
+function dibujarMarcador(contexto: CanvasRenderingContext2D) {
+  const grad=contexto.createLinearGradient(MarcadorX, 0, MarcadorX + ANCHURA_MARCADOR, 0);
+grad.addColorStop(0, "darkorange");
+grad.addColorStop(0.5, "orange");
+grad.addColorStop(1, "#ffd5b1");
+
+// Fill text with gradient
+contexto.font = "bold italic 50px Arial";
+contexto.fillStyle = grad;
+contexto.fillText(textoMarcador + counter, MarcadorX, 40, ANCHURA_MARCADOR);
+}
+
 function beep() {
   SONIDO_SALTO.play();
 }
@@ -287,7 +312,6 @@ function actualizarPosicionPersonaje(teclasPulsadas: Set<string>) {
     beep();
   }
 
-
 }
 function colisionRectangulos(rect1: Rectangle, rect2: Rectangle): boolean {
   if (
@@ -302,8 +326,6 @@ function colisionRectangulos(rect1: Rectangle, rect2: Rectangle): boolean {
   return false;
 }
 
-
-
 function actualizarPosicionObstaculos() {
 
   for (let i = 0; i < obstaculos.length; i++) {
@@ -313,6 +335,7 @@ function actualizarPosicionObstaculos() {
       const nuevoObstaculo = generarObstaculo()
       nuevoObstaculo.x = ANCHO_TABLERO + anchuraObstaculo
       obstaculos[i] = nuevoObstaculo;
+counter = counter + 1
     }
   }
 }
@@ -320,9 +343,9 @@ function actualizarPosicionObstaculos() {
 function update(deltaTime: number) {
   actualizarPosicionPersonaje(teclasPulsadas);
   actualizarPosicionObstaculos();
+  actualizarFinJuego();
   actualizarPosicionNieve(deltaTime);
   resetearPosicionPersonaje();
-  actualizarFinJuego();
 }
 
 function render(contexto: CanvasRenderingContext2D) {
@@ -330,6 +353,7 @@ function render(contexto: CanvasRenderingContext2D) {
   dibujarBase(contexto);
   dibujarPersonaje(contexto);
   dibujarObstaculos(contexto);
+  dibujarMarcador(contexto);
   dibujarNieve(contexto);
 
 }
