@@ -1,0 +1,9 @@
+Tareas:
+1.- Crear una página web desde 0, que muestre en pantalla un mensaje: "Me cago en todo"
+2.- Dentro de esa página añadiremos un script que saque un mensaje por cosnola "Ya estoy aquí"
+3.- En ese script añadiremos una constante de tipo cadena de texto donde meteremos el valor "hola"
+4.- Crearemos una variable de tipo cadena de texto donde meteremos el valor "me llamo" y lo imprimimos por consola
+5.- Modificaremos la variable anterior para que contenga el valor "me llamo Xoel" (usando el valor el punto 4) y lo imprimimos por consola
+6.- Crear un array de 10 elementos que serán todos números
+7.- Recorrer el array e imprimir por consola el número de cada posición del array
+
